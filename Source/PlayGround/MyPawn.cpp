@@ -8,8 +8,12 @@
 #include "Camera/CameraComponent.h"
 #include "Components/ArrowComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "MyActor.h"
+#include "EnhancedInputComponent.h"
+#include "InputAction.h"
+#include "InputActionValue.h"
 
 // Sets default values
 AMyPawn::AMyPawn()
@@ -52,6 +56,9 @@ AMyPawn::AMyPawn()
 	SpringArm->TargetArmLength = 150.0f;
 	SpringArm->SocketOffset = FVector(0, 0, 50.0f);
 	SpringArm->bDoCollisionTest = false;
+	SpringArm->bEnableCameraRotationLag = true;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->SocketOffset = FVector(0, 0, 50.f);
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
@@ -60,16 +67,32 @@ AMyPawn::AMyPawn()
 	Arrow->SetupAttachment(RootComponent);
 	Arrow->SetRelativeLocation(FVector(70.f, 0, 0));
 
-	//Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
+	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
+	//Movement->MaxSpeed = 2000.f;
 	//Movement->MaxSpeed = 2000.f;
 
 	MyActor = AMyActor::StaticClass();
+
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IA_FireAsset(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Fire.IA_Fire'"));
+	if (IA_FireAsset.Succeeded())
+	{
+		IA_Fire = IA_FireAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IA_MovementAsset(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Movement.IA_Movement'"));
+	if (IA_MovementAsset.Succeeded())
+	{
+		IA_Movement = IA_MovementAsset.Object;
+	}
 }
 
 // Called when the game starts or when spawned
 void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	/* 시작하면 Rocket 발사
 	FVector SpawnLocation = Arrow->GetComponentLocation();
 	//FRotator SpawnRotation = MyActor->GetActorRotation();
 	
@@ -77,7 +100,7 @@ void AMyPawn::BeginPlay()
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = this;
 	
-	GetWorld()->SpawnActor<AActor>(MyActor, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+	GetWorld()->SpawnActor<AActor>(MyActor, SpawnLocation, FRotator::ZeroRotator, SpawnParams);*/
 }
 
 // Called every frame
@@ -87,8 +110,8 @@ void AMyPawn::Tick(float DeltaTime)
 
 	AddMovementInput(GetActorForwardVector());
 
-	Left->AddLocalRotation(FRotator(0, 0, 3600.0f * DeltaTime));
-	Right->AddLocalRotation(FRotator(0, 0, 3600.0f * DeltaTime));
+	Left->AddLocalRotation(FRotator(0, 0, 3600.0f * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 7200.0f));
+	Right->AddLocalRotation(FRotator(0, 0, 3600.0f * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 7200.0f));
 
 }
 
@@ -97,5 +120,46 @@ void AMyPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UEnhancedInputComponent* UIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (UIC)
+	{
+		UIC->BindAction(IA_Fire, ETriggerEvent::Completed, this, &AMyPawn::EnhancedFire);
+		UIC->BindAction(IA_Movement, ETriggerEvent::Triggered, this, &AMyPawn::ProcessMovement);
+	}
+
+	/* PlayerInputComponent->BindAction(TEXT("Fire"), EInputEvent::IE_Pressed, this, &AMyPawn::Fire);
+	//PlayerInputComponent->BindAction(TEXT("Fire"), EInputEvent::IE_Released, this, AMyPawn::Fire);
+
+	PlayerInputComponent->BindAxis(TEXT("Pitch"), this, &AMyPawn::Pitch);
+	PlayerInputComponent->BindAxis(TEXT("Roll"), this, &AMyPawn::Roll); */
+}
+
+void AMyPawn::EnhancedFire(const FInputActionValue& Value)
+{
+	Fire();
+}
+
+void AMyPawn::ProcessMovement(const FInputActionValue& Value)
+{
+	FVector2D WantedRotation = Value.Get<FVector2D>();
+	//WantedRotation = WantedRotation * 60.0 * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
+	//AddActorLocalRotation(FRotator(WantedRotation.X, 0, WantedRotation.Y));
+	Pitch(WantedRotation.Y);
+	Roll(WantedRotation.X);
+}
+
+void AMyPawn::Fire()
+{
+	GetWorld()->SpawnActor<AMyActor>(AMyActor::StaticClass(), Arrow->K2_GetComponentToWorld());
+}
+
+void AMyPawn::Pitch(float Value)
+{
+	AddActorLocalRotation(FRotator(Value * 60.0 * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()),0, 0));
+}
+
+void AMyPawn::Roll(float Value)
+{
+	AddActorLocalRotation(FRotator(0, 0, Value * 60.0 * UGameplayStatics::GetWorldDeltaSeconds(GetWorld())));
 }
 

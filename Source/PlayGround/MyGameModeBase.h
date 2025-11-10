@@ -7,13 +7,13 @@
 #include "MyGameModeBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class PLAYGROUND_API AMyGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 	AMyGameModeBase();
 
 };

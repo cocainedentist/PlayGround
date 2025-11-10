@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// MyRocket.h
 
 #pragma once
 
@@ -14,8 +15,8 @@ UCLASS()
 class PLAYGROUND_API AMyActor : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AMyActor();
 
@@ -23,19 +24,25 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 
 public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
-	UBoxComponent* Box;
+	TObjectPtr<class UBoxComponent> Box;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* StaticMesh;
+	TObjectPtr<class UStaticMeshComponent> StaticMesh;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
-	UProjectileMovementComponent* ProjectileMovement;
+	TObjectPtr<class UProjectileMovementComponent> ProjectileMovement;
+
+	UFUNCTION()
+	void Timeout();
+
+	UFUNCTION()
+	void ProcessActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor); // Actor에 선언된 델리게이트에서 가져온 함수
 
 };

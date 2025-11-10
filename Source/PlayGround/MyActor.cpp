@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// MyRocket.h
 
 
 #include "MyActor.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMyActor::AMyActor()
@@ -39,7 +42,23 @@ void AMyActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetLifeSpan(3.f);
+	//SetLifeSpan(3.f);
+
+	//Delay를 사용하기위한 code
+	FLatentActionInfo Info;
+	Info.ExecutionFunction = TEXT("Timeout");
+	Info.CallbackTarget = this;
+	Info.UUID = 0;
+	Info.Linkage = 1;
+
+	UKismetSystemLibrary::Delay(GetWorld(), 1.0f, Info);
+
+	// Delegate UE
+	OnActorBeginOverlap.AddDynamic(this, &AMyActor::ProcessActorBeginOverlap);
+	OnActorBeginOverlap.AddDynamic(this, &AMyActor::ProcessActorBeginOverlap);
+	OnActorBeginOverlap.Remove(this, TEXT("ProcessActorBeginOverlap"));
+
+
 	
 }
 
@@ -48,5 +67,16 @@ void AMyActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AMyActor::Timeout()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("DIE"));
+	Destroy();
+}
+
+void AMyActor::ProcessActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
+	UGameplayStatics::ApplyDamage(OtherActor, 10.0f, UGameplayStatics::GetPlayerController(GetWorld(), 0), this, nullptr);
 }
 
