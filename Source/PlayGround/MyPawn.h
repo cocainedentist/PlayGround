@@ -61,5 +61,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Components")
 	UArrowComponent* Arrow;
 
+	UClass* MyActor;
+
 
 };

@@ -9,6 +9,8 @@
 #include "Components/ArrowComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 
+#include "MyActor.h"
+
 // Sets default values
 AMyPawn::AMyPawn()
 {
@@ -58,18 +60,24 @@ AMyPawn::AMyPawn()
 	Arrow->SetupAttachment(RootComponent);
 	Arrow->SetRelativeLocation(FVector(70.f, 0, 0));
 
-	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
-	Movement->MaxSpeed = 2000.f;
+	//Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
+	//Movement->MaxSpeed = 2000.f;
 
-
-
+	MyActor = AMyActor::StaticClass();
 }
 
 // Called when the game starts or when spawned
 void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
+	FVector SpawnLocation = Arrow->GetComponentLocation();
+	FRotator SpawnRotation = Arrow->GetComponentRotation();
 	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+	
+	GetWorld()->SpawnActor<AActor>(MyActor, SpawnLocation, SpawnRotation, SpawnParams);
 }
 
 // Called every frame
