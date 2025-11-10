@@ -71,13 +71,13 @@ void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	FVector SpawnLocation = Arrow->GetComponentLocation();
-	FRotator SpawnRotation = Arrow->GetComponentRotation();
+	//FRotator SpawnRotation = MyActor->GetActorRotation();
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = this;
 	
-	GetWorld()->SpawnActor<AActor>(MyActor, SpawnLocation, SpawnRotation, SpawnParams);
+	GetWorld()->SpawnActor<AActor>(MyActor, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 }
 
 // Called every frame

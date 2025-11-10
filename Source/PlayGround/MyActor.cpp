@@ -19,7 +19,7 @@ AMyActor::AMyActor()
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetupAttachment(Box);
-	// StaticMesh->SetRelativeRotation();
+	StaticMesh->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->InitialSpeed = 1000.f;
